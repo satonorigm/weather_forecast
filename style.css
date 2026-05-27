@@ -48,14 +48,28 @@ h2 {
   padding-left: 10px;
 }
 
-.map-container {
-  background: #252b3b;
+#weather-map {
+  height: 380px;
   border-radius: 8px;
-  min-height: 260px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
   border: 1px solid #2e3650;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+.radar-time {
+  font-size: 0.8rem;
+  color: #6b7590;
 }
 
 .forecast-container {
@@ -69,12 +83,6 @@ h2 {
 .placeholder {
   color: #4a5270;
   font-size: 0.9rem;
-}
-
-.map-container img {
-  width: 100%;
-  border-radius: 6px;
-  display: block;
 }
 
 .forecast-meta {
