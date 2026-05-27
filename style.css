@@ -85,6 +85,51 @@ h2 {
   font-size: 0.9rem;
 }
 
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.card {
+  background: #1e2436;
+  border: 1px solid #2e3650;
+  border-radius: 8px;
+  padding: 12px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-day {
+  font-size: 0.8rem;
+  color: #7ec8a4;
+  font-weight: bold;
+}
+
+.card-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.card-temp {
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.temp-max { color: #f07070; }
+.temp-min { color: #70a0f0; }
+
+.card-wind {
+  font-size: 0.72rem;
+  color: #9aa3b8;
+  line-height: 1.3;
+}
+
 .forecast-meta {
   display: flex;
   justify-content: space-between;

@@ -1,11 +1,26 @@
-const BASE_FORECAST = 'https://www.jma.go.jp/bosai/forecast/data/overview_forecast/';
+const BASE_FORECAST         = 'https://www.jma.go.jp/bosai/forecast/data/overview_forecast/';
+const BASE_FORECAST_DETAIL  = 'https://www.jma.go.jp/bosai/forecast/data/forecast/';
 const RADAR_TIMES_URL = 'https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json';
 const RADAR_TILE = (basetime, validtime) =>
   `https://www.jma.go.jp/bosai/jmatile/data/nowc/${basetime}/none/${validtime}/surf/hrpns/{z}/{x}/{y}.png`;
 
-const gpsStatus = document.getElementById('gps-status');
-const forecast  = document.getElementById('forecast');
-const radarTimeEl = document.getElementById('radar-time');
+const gpsStatus     = document.getElementById('gps-status');
+const forecast      = document.getElementById('forecast');
+const forecastCards = document.getElementById('forecast-cards');
+const radarTimeEl   = document.getElementById('radar-time');
+
+function weatherIcon(code) {
+  const n = parseInt(code);
+  if (n >= 400) return '❄️';
+  if ([306, 307, 308, 406, 407].includes(n)) return '⛈️';
+  if (n >= 300) return '🌧️';
+  if (n >= 200) return (n <= 203) ? '⛅' : '🌦️';
+  if (n === 100) return '☀️';
+  if (n <= 115) return '🌤️';
+  return '🌦️';
+}
+
+const DAY_LABELS = ['今日', '明日', '明後日'];
 
 // [area_code, lat, lon, name]
 const PREFECTURES = [
@@ -111,15 +126,45 @@ async function loadRadar() {
 // --- Forecast ---
 async function loadForecast(areaCode) {
   try {
-    const res = await fetch(BASE_FORECAST + areaCode + '.json');
-    const data = await res.json();
+    const [overviewRes, detailRes] = await Promise.all([
+      fetch(BASE_FORECAST        + areaCode + '.json'),
+      fetch(BASE_FORECAST_DETAIL + areaCode + '.json'),
+    ]);
+    const overview = await overviewRes.json();
+    const detail   = await detailRes.json();
+
+    // 3-day cards
+    const ts0   = detail[0].timeSeries[0];
+    const ts1   = detail[0].timeSeries[1];
+    const area0 = ts0.areas[0];
+
+    const cards = ts0.timeDefines.map((iso, i) => {
+      const dateStr = iso.slice(0, 10);
+      const tempIdx = ts1.timeDefines.findIndex(t => t.slice(0, 10) === dateStr);
+      const maxTemp = tempIdx >= 0 ? (ts1.areas[0].tempsMax?.[tempIdx] || '') : '';
+      const minTemp = tempIdx >= 0 ? (ts1.areas[0].tempsMin?.[tempIdx] || '') : '';
+      const tempStr = (maxTemp || minTemp)
+        ? `<span class="temp-max">${maxTemp || '—'}°</span><span class="temp-min">${minTemp || '—'}°</span>`
+        : '';
+      return `
+        <div class="card">
+          <div class="card-day">${DAY_LABELS[i] ?? ''}</div>
+          <div class="card-icon">${weatherIcon(area0.weatherCodes[i])}</div>
+          ${tempStr ? `<div class="card-temp">${tempStr}</div>` : ''}
+          <div class="card-wind">${area0.winds?.[i] ?? ''}</div>
+        </div>`;
+    }).join('');
+
+    forecastCards.innerHTML = `<div class="cards">${cards}</div>`;
+
+    // Overview text
     forecast.innerHTML = `
       <div class="forecast-meta">
-        <span class="area-name">${data.targetArea}</span>
-        <span class="report-time">${formatDatetime(data.reportDatetime)}</span>
+        <span class="area-name">${overview.targetArea}</span>
+        <span class="report-time">${formatDatetime(overview.reportDatetime)}</span>
       </div>
-      ${data.headlineText ? `<p class="headline">${data.headlineText}</p>` : ''}
-      <p class="forecast-text">${data.text}</p>
+      ${overview.headlineText ? `<p class="headline">${overview.headlineText}</p>` : ''}
+      <p class="forecast-text">${overview.text}</p>
     `;
   } catch {
     forecast.innerHTML = '<p class="placeholder">予報データの読み込みに失敗しました</p>';
