@@ -1,10 +1,11 @@
 const BASE_FORECAST = 'https://www.jma.go.jp/bosai/forecast/data/overview_forecast/';
-const LIST_URL = 'https://www.jma.go.jp/bosai/weather_map/data/list.json';
-const BASE_MAP_IMG = 'https://www.jma.go.jp/bosai/weather_map/data/png/';
+const RADAR_TIMES_URL = 'https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json';
+const RADAR_TILE = (basetime, validtime) =>
+  `https://www.jma.go.jp/bosai/jmatile/data/nowc/${basetime}/none/${validtime}/surf/hrpns/{z}/{x}/{y}.png`;
 
 const gpsStatus = document.getElementById('gps-status');
-const weatherMap = document.getElementById('weather-map');
-const forecast = document.getElementById('forecast');
+const forecast  = document.getElementById('forecast');
+const radarTimeEl = document.getElementById('radar-time');
 
 // [area_code, lat, lon, name]
 const PREFECTURES = [
@@ -58,8 +59,7 @@ const PREFECTURES = [
 ];
 
 function nearestPrefecture(lat, lon) {
-  let best = PREFECTURES[0];
-  let minDist = Infinity;
+  let best = PREFECTURES[0], minDist = Infinity;
   for (const p of PREFECTURES) {
     const d = Math.hypot(lat - p[1], lon - p[2]);
     if (d < minDist) { minDist = d; best = p; }
@@ -72,21 +72,43 @@ function formatDatetime(iso) {
   return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')} 発表`;
 }
 
-async function loadWeatherMap() {
+function parseRadarTime(t) {
+  // t = '20260527150500'
+  const mo = parseInt(t.slice(4, 6));
+  const d  = parseInt(t.slice(6, 8));
+  const h  = t.slice(8, 10);
+  const mi = t.slice(10, 12);
+  return `${mo}/${d} ${h}:${mi}`;
+}
+
+// --- Map ---
+const map = L.map('weather-map', { center: [36.5, 136.0], zoom: 5 });
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  opacity: 0.6,
+}).addTo(map);
+
+let radarLayer = null;
+let locationMarker = null;
+
+async function loadRadar() {
   try {
-    const res = await fetch(LIST_URL);
-    const list = await res.json();
-    const filename = list.near.now.at(-1);
-    const img = document.createElement('img');
-    img.src = BASE_MAP_IMG + filename;
-    img.alt = '最新天気図';
-    weatherMap.innerHTML = '';
-    weatherMap.appendChild(img);
+    const res = await fetch(RADAR_TIMES_URL);
+    const times = await res.json();
+    const latest = times[0];
+    if (radarLayer) map.removeLayer(radarLayer);
+    radarLayer = L.tileLayer(RADAR_TILE(latest.basetime, latest.validtime), {
+      opacity: 0.75,
+      attribution: '© JMA',
+    }).addTo(map);
+    radarTimeEl.textContent = parseRadarTime(latest.validtime);
   } catch {
-    weatherMap.innerHTML = '<p class="placeholder">天気図の読み込みに失敗しました</p>';
+    radarTimeEl.textContent = '読み込み失敗';
   }
 }
 
+// --- Forecast ---
 async function loadForecast(areaCode) {
   try {
     const res = await fetch(BASE_FORECAST + areaCode + '.json');
@@ -104,6 +126,7 @@ async function loadForecast(areaCode) {
   }
 }
 
+// --- GPS ---
 function getLocation() {
   if (!navigator.geolocation) {
     gpsStatus.textContent = '⚠️ GPS 非対応';
@@ -112,8 +135,14 @@ function getLocation() {
   }
   navigator.geolocation.getCurrentPosition(
     ({ coords }) => {
-      const pref = nearestPrefecture(coords.latitude, coords.longitude);
+      const { latitude: lat, longitude: lon } = coords;
+      const pref = nearestPrefecture(lat, lon);
       gpsStatus.textContent = `📍 ${pref[3]}`;
+      if (locationMarker) map.removeLayer(locationMarker);
+      locationMarker = L.circleMarker([lat, lon], {
+        radius: 9, fillColor: '#7ec8a4', color: '#fff', weight: 2, fillOpacity: 0.9,
+      }).addTo(map).bindPopup('現在地').openPopup();
+      map.setView([lat, lon], 8);
       loadForecast(pref[0]);
     },
     () => {
@@ -123,5 +152,5 @@ function getLocation() {
   );
 }
 
-loadWeatherMap();
+loadRadar();
 getLocation();
