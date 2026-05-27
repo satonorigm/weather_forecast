@@ -114,6 +114,9 @@ map.createPane('radarPane');
 map.getPane('radarPane').style.zIndex = 250;
 map.getPane('radarPane').style.pointerEvents = 'none';
 
+// Force radar tile reload after zoom to prevent alternating visibility bug.
+map.on('zoomend', () => { if (radarLayer) radarLayer.redraw(); });
+
 let radarLayer = null;
 let locationMarker = null;
 
@@ -147,6 +150,7 @@ async function loadRadar() {
     radarLayer = L.tileLayer(RADAR_TILE(latest.basetime, latest.validtime), {
       pane: 'radarPane',
       opacity: 0.75,
+      maxNativeZoom: 10,
       attribution: '© JMA',
     }).addTo(map);
     radarTimeEl.textContent = parseRadarTime(latest.validtime);
