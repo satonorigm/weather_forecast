@@ -108,6 +108,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   opacity: 0.6,
 }).addTo(map);
 
+// レーダー専用 pane を OSM より高い z-index に固定。
+// 同一 tilePane 内だとズーム時に重ね順が入れ替わるバグを防ぐ。
+map.createPane('radarPane');
+map.getPane('radarPane').style.zIndex = 250;
+map.getPane('radarPane').style.pointerEvents = 'none';
+
 let radarLayer = null;
 let locationMarker = null;
 
@@ -139,6 +145,7 @@ async function loadRadar() {
     const latest = times[0];
     if (radarLayer) map.removeLayer(radarLayer);
     radarLayer = L.tileLayer(RADAR_TILE(latest.basetime, latest.validtime), {
+      pane: 'radarPane',
       opacity: 0.75,
       attribution: '© JMA',
     }).addTo(map);
