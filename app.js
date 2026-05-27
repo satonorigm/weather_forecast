@@ -114,6 +114,15 @@ map.createPane('radarPane');
 map.getPane('radarPane').style.zIndex = 250;
 map.getPane('radarPane').style.pointerEvents = 'none';
 
+// JMA hrpns タイルは偶数ズームレベルのみデータを提供する。
+// 奇数ズームは透明 PNG が返るため、常に偶数にスナップする。
+const JmaRadarLayer = L.TileLayer.extend({
+  _clampZoom: function (zoom) {
+    if (zoom % 2 !== 0) zoom -= 1;
+    return L.TileLayer.prototype._clampZoom.call(this, zoom);
+  },
+});
+
 let radarLayer = null;
 let locationMarker = null;
 
@@ -144,11 +153,10 @@ async function loadRadar() {
     const times = await res.json();
     const latest = times[0];
     if (radarLayer) map.removeLayer(radarLayer);
-    radarLayer = L.tileLayer(RADAR_TILE(latest.basetime, latest.validtime), {
+    radarLayer = new JmaRadarLayer(RADAR_TILE(latest.basetime, latest.validtime), {
       pane: 'radarPane',
       opacity: 0.75,
       maxNativeZoom: 10,
-      updateWhenZooming: false,
       attribution: '© JMA',
     }).addTo(map);
     radarTimeEl.textContent = parseRadarTime(latest.validtime);
