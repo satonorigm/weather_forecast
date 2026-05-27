@@ -235,7 +235,8 @@ function getLocation() {
     () => {
       gpsStatus.textContent = '⚠️ 現在地を取得できませんでした（東京都の予報を表示）';
       loadForecast('130000');
-    }
+    },
+    { timeout: 10000, maximumAge: 60000 }
   );
 }
 
