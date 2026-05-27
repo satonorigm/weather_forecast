@@ -176,24 +176,48 @@ async function loadForecast(areaCode) {
     const detail   = await detailRes.json();
 
     // 3-day cards
-    const ts0   = detail[0].timeSeries[0];
-    const ts1   = detail[0].timeSeries[1];
-    const area0 = ts0.areas[0];
+    // 短期予報 (detail[0]) は都府県によって 2〜3 日分しかない。
+    // 不足分は週間予報 (detail[1]) で補完して常に 3 日分表示する。
+    const st0     = detail[0].timeSeries[0];          // 短期: 天気・風
+    const st1     = detail[0].timeSeries[1];          // 短期: 気温 or 降水確率
+    const stArea  = st0.areas[0];
+    const wk0     = detail[1].timeSeries[0];          // 週間: 天気コード
+    const wk1     = detail[1].timeSeries[1];          // 週間: 気温
+    const wkArea  = wk0.areas[0];
+    const wkTemps = wk1?.areas[0];
 
-    const cards = ts0.timeDefines.map((iso, i) => {
-      const dateStr = iso.slice(0, 10);
-      const tempIdx = ts1.timeDefines.findIndex(t => t.slice(0, 10) === dateStr);
-      const maxTemp = tempIdx >= 0 ? (ts1.areas[0].tempsMax?.[tempIdx] || '') : '';
-      const minTemp = tempIdx >= 0 ? (ts1.areas[0].tempsMin?.[tempIdx] || '') : '';
-      const tempStr = (maxTemp || minTemp)
-        ? `<span class="temp-max">${maxTemp || '—'}°</span><span class="temp-min">${minTemp || '—'}°</span>`
+    // 短期データを日付→オブジェクトで保持
+    const stMap = new Map(
+      st0.timeDefines.map((iso, i) => [iso.slice(0, 10), {
+        code: stArea.weatherCodes[i],
+        wind: stArea.winds?.[i] ?? '',
+        maxTemp: st1.areas[0].tempsMax?.[st1.timeDefines.findIndex(t => t.slice(0, 10) === iso.slice(0, 10))] ?? '',
+        minTemp: st1.areas[0].tempsMin?.[st1.timeDefines.findIndex(t => t.slice(0, 10) === iso.slice(0, 10))] ?? '',
+      }])
+    );
+
+    // 週間データから 3 日分を構築（短期が存在する日は短期を優先）
+    const days = wk0.timeDefines.slice(0, 3).map((iso, i) => {
+      const date = iso.slice(0, 10);
+      const st   = stMap.get(date);
+      return {
+        code:     st?.code     ?? wkArea.weatherCodes[i],
+        wind:     st?.wind     ?? '',
+        maxTemp:  st?.maxTemp  || wkTemps?.tempsMax?.[i] || '',
+        minTemp:  st?.minTemp  || wkTemps?.tempsMin?.[i] || '',
+      };
+    });
+
+    const cards = days.map((day, i) => {
+      const tempStr = (day.maxTemp || day.minTemp)
+        ? `<span class="temp-max">${day.maxTemp || '—'}°</span><span class="temp-min">${day.minTemp || '—'}°</span>`
         : '';
       return `
         <div class="card">
           <div class="card-day">${DAY_LABELS[i] ?? ''}</div>
-          <div class="card-icon">${weatherIcon(area0.weatherCodes[i])}</div>
+          <div class="card-icon">${weatherIcon(day.code)}</div>
           ${tempStr ? `<div class="card-temp">${tempStr}</div>` : ''}
-          <div class="card-wind">${area0.winds?.[i] ?? ''}</div>
+          <div class="card-wind">${day.wind}</div>
         </div>`;
     }).join('');
 
