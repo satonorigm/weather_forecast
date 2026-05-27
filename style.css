@@ -9,110 +9,136 @@ body {
   background: #1a1f2e;
   color: #e8eaf0;
   min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* ---- Header ---- */
 header {
   background: #0f1420;
-  padding: 16px 20px;
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
   border-bottom: 2px solid #2e7d5e;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 h1 {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: #7ec8a4;
   letter-spacing: 0.05em;
 }
 
-.status {
-  font-size: 0.85rem;
-  color: #9aa3b8;
-}
-
-main {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-h2 {
-  font-size: 1rem;
+#refresh-btn {
+  background: #2e3650;
+  border: 1px solid #3e4a6a;
   color: #7ec8a4;
-  margin-bottom: 10px;
-  border-left: 3px solid #2e7d5e;
-  padding-left: 10px;
-}
-
-.chart-container img {
-  width: 100%;
-  border-radius: 6px;
-  display: block;
-}
-
-.chart-container {
-  background: #252b3b;
   border-radius: 8px;
-  min-height: 160px;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #2e3650;
+  touch-action: manipulation;
 }
 
-#weather-map {
-  height: 380px;
-  border-radius: 8px;
+#refresh-btn:active {
+  background: #1e2436;
+}
+
+.status {
+  font-size: 0.8rem;
+  color: #9aa3b8;
+  margin-top: 4px;
+  white-space: nowrap;
   overflow: hidden;
-  border: 1px solid #2e3650;
+  text-overflow: ellipsis;
+}
+
+/* ---- Main layout ---- */
+main {
+  padding: 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-left: max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
+}
+
+/* ---- Section headers ---- */
+h2 {
+  font-size: 0.95rem;
+  color: #7ec8a4;
+  border-left: 3px solid #2e7d5e;
+  padding-left: 8px;
 }
 
 .section-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   gap: 8px;
 }
 
-.section-header h2 {
-  margin-bottom: 0;
+.section-header h2 { margin-bottom: 0; }
+
+#forecast-section > h2 {
+  margin-bottom: 10px;
 }
 
-.radar-time {
-  font-size: 0.8rem;
+.section-time {
+  font-size: 0.75rem;
   color: #6b7590;
 }
 
-.forecast-container {
+/* ---- Weather chart ---- */
+.chart-container {
   background: #252b3b;
   border-radius: 8px;
   min-height: 120px;
-  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2e3650;
+  overflow: hidden;
+}
+
+.chart-container img {
+  width: 100%;
+  display: block;
+  border-radius: 6px;
+}
+
+/* ---- Radar map ---- */
+#weather-map {
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
   border: 1px solid #2e3650;
 }
 
-.placeholder {
-  color: #4a5270;
-  font-size: 0.9rem;
-}
-
+/* ---- 3-day cards ---- */
 .cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .card {
   background: #1e2436;
   border: 1px solid #2e3650;
-  border-radius: 8px;
-  padding: 12px 8px;
+  border-radius: 10px;
+  padding: 12px 6px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -126,24 +152,32 @@ h2 {
 }
 
 .card-icon {
-  font-size: 2rem;
+  font-size: 1.9rem;
   line-height: 1;
 }
 
 .card-temp {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .temp-max { color: #f07070; }
 .temp-min { color: #70a0f0; }
 
 .card-wind {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #9aa3b8;
   line-height: 1.3;
+}
+
+/* ---- Forecast text ---- */
+.forecast-container {
+  background: #252b3b;
+  border-radius: 8px;
+  padding: 14px;
+  border: 1px solid #2e3650;
 }
 
 .forecast-meta {
@@ -158,23 +192,39 @@ h2 {
 .area-name {
   font-weight: bold;
   color: #7ec8a4;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .report-time {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #6b7590;
 }
 
 .headline {
   color: #f0a04a;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   margin-bottom: 8px;
 }
 
 .forecast-text {
-  font-size: 0.9rem;
-  line-height: 1.7;
+  font-size: 0.88rem;
+  line-height: 1.75;
   color: #c8cedd;
   white-space: pre-wrap;
+}
+
+.placeholder {
+  color: #4a5270;
+  font-size: 0.88rem;
+}
+
+/* ---- Desktop ---- */
+@media (min-width: 600px) {
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  #weather-map { height: 360px; }
+  h1 { font-size: 1.4rem; }
 }
