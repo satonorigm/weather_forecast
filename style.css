@@ -70,3 +70,42 @@ h2 {
   color: #4a5270;
   font-size: 0.9rem;
 }
+
+.map-container img {
+  width: 100%;
+  border-radius: 6px;
+  display: block;
+}
+
+.forecast-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.area-name {
+  font-weight: bold;
+  color: #7ec8a4;
+  font-size: 1rem;
+}
+
+.report-time {
+  font-size: 0.8rem;
+  color: #6b7590;
+}
+
+.headline {
+  color: #f0a04a;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.forecast-text {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #c8cedd;
+  white-space: pre-wrap;
+}
