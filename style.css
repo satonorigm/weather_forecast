@@ -48,6 +48,22 @@ h2 {
   padding-left: 10px;
 }
 
+.chart-container img {
+  width: 100%;
+  border-radius: 6px;
+  display: block;
+}
+
+.chart-container {
+  background: #252b3b;
+  border-radius: 8px;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2e3650;
+}
+
 #weather-map {
   height: 380px;
   border-radius: 8px;
