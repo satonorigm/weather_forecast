@@ -222,6 +222,24 @@ function getLocation() {
   );
 }
 
-loadWeatherChart();
-loadRadar();
-getLocation();
+function initApp() {
+  loadWeatherChart();
+  loadRadar();
+  getLocation();
+}
+
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  const btn = document.getElementById('refresh-btn');
+  btn.style.opacity = '0.4';
+  btn.style.pointerEvents = 'none';
+  document.getElementById('weather-chart').innerHTML = '<p class="placeholder">読み込み中…</p>';
+  document.getElementById('forecast').innerHTML = '<p class="placeholder">読み込み中…</p>';
+  document.getElementById('forecast-cards').innerHTML = '';
+  initApp();
+  setTimeout(() => {
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+  }, 2000);
+});
+
+initApp();
