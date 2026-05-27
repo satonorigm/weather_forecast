@@ -1,6 +1,8 @@
 const BASE_FORECAST         = 'https://www.jma.go.jp/bosai/forecast/data/overview_forecast/';
 const BASE_FORECAST_DETAIL  = 'https://www.jma.go.jp/bosai/forecast/data/forecast/';
-const RADAR_TIMES_URL = 'https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json';
+const LIST_URL              = 'https://www.jma.go.jp/bosai/weather_map/data/list.json';
+const BASE_MAP_IMG          = 'https://www.jma.go.jp/bosai/weather_map/data/png/';
+const RADAR_TIMES_URL       = 'https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json';
 const RADAR_TILE = (basetime, validtime) =>
   `https://www.jma.go.jp/bosai/jmatile/data/nowc/${basetime}/none/${validtime}/surf/hrpns/{z}/{x}/{y}.png`;
 
@@ -8,6 +10,8 @@ const gpsStatus     = document.getElementById('gps-status');
 const forecast      = document.getElementById('forecast');
 const forecastCards = document.getElementById('forecast-cards');
 const radarTimeEl   = document.getElementById('radar-time');
+const weatherChart  = document.getElementById('weather-chart');
+const chartTimeEl   = document.getElementById('chart-time');
 
 function weatherIcon(code) {
   const n = parseInt(code);
@@ -107,6 +111,27 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let radarLayer = null;
 let locationMarker = null;
 
+async function loadWeatherChart() {
+  try {
+    const res = await fetch(LIST_URL);
+    const list = await res.json();
+    const filename = list.near.now.at(-1);
+    const timeStr = filename.slice(0, 8) + filename.slice(8, 12);
+    const mo = parseInt(timeStr.slice(4, 6));
+    const d  = parseInt(timeStr.slice(6, 8));
+    const h  = timeStr.slice(8, 10);
+    const mi = timeStr.slice(10, 12);
+    const img = document.createElement('img');
+    img.src = BASE_MAP_IMG + filename;
+    img.alt = '地上天気図';
+    weatherChart.innerHTML = '';
+    weatherChart.appendChild(img);
+    chartTimeEl.textContent = `${mo}/${d} ${h}:${mi}`;
+  } catch {
+    weatherChart.innerHTML = '<p class="placeholder">天気図の読み込みに失敗しました</p>';
+  }
+}
+
 async function loadRadar() {
   try {
     const res = await fetch(RADAR_TIMES_URL);
@@ -197,5 +222,6 @@ function getLocation() {
   );
 }
 
+loadWeatherChart();
 loadRadar();
 getLocation();
