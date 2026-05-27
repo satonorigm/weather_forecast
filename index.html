@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天気図</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>天気図</h1>
+    <div id="gps-status" class="status">📍 現在地を取得中…</div>
+  </header>
+
+  <main>
+    <section id="weather-map-section">
+      <h2>最新天気図</h2>
+      <div id="weather-map" class="map-container">
+        <p class="placeholder">天気図を読み込み中…</p>
+      </div>
+    </section>
+
+    <section id="forecast-section">
+      <h2>向こう24時間の予報</h2>
+      <div id="forecast" class="forecast-container">
+        <p class="placeholder">予報データを読み込み中…</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
