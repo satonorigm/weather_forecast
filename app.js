@@ -12,6 +12,27 @@ const forecastCards = document.getElementById('forecast-cards');
 const radarTimeEl   = document.getElementById('radar-time');
 const weatherChart  = document.getElementById('weather-chart');
 const chartTimeEl   = document.getElementById('chart-time');
+const aiCommentaryEl = document.getElementById('ai-commentary');
+
+// AI解説APIエンドポイント（同一オリジン = Cloudflare Worker）
+const AI_ENDPOINT = '/api/ai-commentary';
+
+async function loadAiCommentary({ area, forecastText, headline, days }) {
+  if (!aiCommentaryEl) return;
+  aiCommentaryEl.innerHTML = '<p class="placeholder">🤖 解説を生成中…</p>';
+  try {
+    const res = await fetch(AI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ area, forecastText, headline, days }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { commentary } = await res.json();
+    aiCommentaryEl.innerHTML = `<p class="forecast-text">${commentary}</p>`;
+  } catch {
+    aiCommentaryEl.innerHTML = '<p class="placeholder">AI解説を取得できませんでした</p>';
+  }
+}
 
 function weatherIcon(code) {
   const n = parseInt(code);
@@ -243,6 +264,19 @@ async function loadForecast(areaCode) {
       ${overview.headlineText ? `<p class="headline">${overview.headlineText}</p>` : ''}
       <p class="forecast-text">${overview.text}</p>
     `;
+
+    // AI山岳気象解説を非同期で生成（予報カード描画後に開始）
+    loadAiCommentary({
+      area: overview.targetArea,
+      forecastText: overview.text,
+      headline: overview.headlineText,
+      days: days.map(d => ({
+        icon: weatherIcon(d.code),
+        maxTemp: d.maxTemp,
+        minTemp: d.minTemp,
+        wind: d.wind,
+      })),
+    });
   } catch {
     forecast.innerHTML = '<p class="placeholder">予報データの読み込みに失敗しました</p>';
   }
@@ -288,6 +322,7 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
   document.getElementById('weather-chart').innerHTML = '<p class="placeholder">読み込み中…</p>';
   document.getElementById('forecast').innerHTML = '<p class="placeholder">読み込み中…</p>';
   document.getElementById('forecast-cards').innerHTML = '';
+  document.getElementById('ai-commentary').innerHTML = '<p class="placeholder">読み込み中…</p>';
   initApp();
   setTimeout(() => {
     btn.style.opacity = '';
