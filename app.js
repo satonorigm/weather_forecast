@@ -131,17 +131,19 @@ async function loadWeatherChart() {
     const res = await fetch(LIST_URL);
     const list = await res.json();
     const filename = list.near.now.at(-1);
-    const timeStr = filename.slice(0, 8) + filename.slice(8, 12);
-    const mo = parseInt(timeStr.slice(4, 6));
-    const d  = parseInt(timeStr.slice(6, 8));
-    const h  = timeStr.slice(8, 10);
-    const mi = timeStr.slice(10, 12);
+    const f = filename;
+    // ファイル名は UTC — Date 経由で JST に変換
+    const utc = new Date(`${f.slice(0,4)}-${f.slice(4,6)}-${f.slice(6,8)}T${f.slice(8,10)}:${f.slice(10,12)}:00Z`);
+    const jst = new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: false,
+    }).format(utc);
     const img = document.createElement('img');
     img.src = BASE_MAP_IMG + filename;
     img.alt = '地上天気図';
     weatherChart.innerHTML = '';
     weatherChart.appendChild(img);
-    chartTimeEl.textContent = `${mo}/${d} ${h}:${mi}`;
+    chartTimeEl.textContent = jst;
   } catch {
     weatherChart.innerHTML = '<p class="placeholder">天気図の読み込みに失敗しました</p>';
   }
