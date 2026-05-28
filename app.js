@@ -179,20 +179,28 @@ async function loadForecast(areaCode) {
     // 短期予報 (detail[0]) は都府県によって 2〜3 日分しかない。
     // 不足分は週間予報 (detail[1]) で補完して常に 3 日分表示する。
     const st0     = detail[0].timeSeries[0];          // 短期: 天気・風
-    const st1     = detail[0].timeSeries[1];          // 短期: 気温 or 降水確率
+    const st2     = detail[0].timeSeries[2];          // 短期: 気温 (09:00=最高, 00:00=最低)
     const stArea  = st0.areas[0];
     const wk0     = detail[1].timeSeries[0];          // 週間: 天気コード
     const wk1     = detail[1].timeSeries[1];          // 週間: 気温
     const wkArea  = wk0.areas[0];
     const wkTemps = wk1?.areas[0];
 
-    // 短期データを日付→オブジェクトで保持
+    // 短期気温を日付→{max, min}で保持（09:00=最高, 00:00=最低）
+    const stTempMap = {};
+    st2?.timeDefines.forEach((iso, i) => {
+      const date = iso.slice(0, 10);
+      const hour = iso.slice(11, 13);
+      if (!stTempMap[date]) stTempMap[date] = {};
+      if (hour === '09') stTempMap[date].max = st2.areas[0].temps[i];
+      else               stTempMap[date].min = st2.areas[0].temps[i];
+    });
+
+    // 短期天気・風を日付→オブジェクトで保持
     const stMap = new Map(
       st0.timeDefines.map((iso, i) => [iso.slice(0, 10), {
         code: stArea.weatherCodes[i],
         wind: stArea.winds?.[i] ?? '',
-        maxTemp: st1.areas[0].tempsMax?.[st1.timeDefines.findIndex(t => t.slice(0, 10) === iso.slice(0, 10))] ?? '',
-        minTemp: st1.areas[0].tempsMin?.[st1.timeDefines.findIndex(t => t.slice(0, 10) === iso.slice(0, 10))] ?? '',
       }])
     );
 
@@ -200,11 +208,12 @@ async function loadForecast(areaCode) {
     const days = wk0.timeDefines.slice(0, 3).map((iso, i) => {
       const date = iso.slice(0, 10);
       const st   = stMap.get(date);
+      const stT  = stTempMap[date] ?? {};
       return {
-        code:     st?.code     ?? wkArea.weatherCodes[i],
-        wind:     st?.wind     ?? '',
-        maxTemp:  st?.maxTemp  || wkTemps?.tempsMax?.[i] || '',
-        minTemp:  st?.minTemp  || wkTemps?.tempsMin?.[i] || '',
+        code:     st?.code ?? wkArea.weatherCodes[i],
+        wind:     st?.wind ?? '',
+        maxTemp:  stT.max  || wkTemps?.tempsMax?.[i] || '',
+        minTemp:  stT.min  || wkTemps?.tempsMin?.[i] || '',
       };
     });
 
