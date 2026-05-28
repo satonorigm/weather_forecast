@@ -257,7 +257,7 @@ function getLocation() {
     ({ coords }) => {
       const { latitude: lat, longitude: lon } = coords;
       const pref = nearestPrefecture(lat, lon);
-      gpsStatus.textContent = `📍 ${pref[3]}`;
+      gpsStatus.textContent = `📍 ${pref[3]}付近`;
       if (locationMarker) map.removeLayer(locationMarker);
       locationMarker = L.circleMarker([lat, lon], {
         radius: 9, fillColor: '#7ec8a4', color: '#fff', weight: 2, fillOpacity: 0.9,
