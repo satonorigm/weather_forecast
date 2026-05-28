@@ -92,12 +92,12 @@ function formatDatetime(iso) {
 }
 
 function parseRadarTime(t) {
-  // t = '20260527150500'
-  const mo = parseInt(t.slice(4, 6));
-  const d  = parseInt(t.slice(6, 8));
-  const h  = t.slice(8, 10);
-  const mi = t.slice(10, 12);
-  return `${mo}/${d} ${h}:${mi}`;
+  // t = '20260527150500' (UTC) → JST に変換
+  const utc = new Date(`${t.slice(0,4)}-${t.slice(4,6)}-${t.slice(6,8)}T${t.slice(8,10)}:${t.slice(10,12)}:00Z`);
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(utc);
 }
 
 // --- Map ---
