@@ -6,16 +6,13 @@ const RADAR_TIMES_URL       = 'https://www.jma.go.jp/bosai/jmatile/data/nowc/tar
 const RADAR_TILE = (basetime, validtime) =>
   `https://www.jma.go.jp/bosai/jmatile/data/nowc/${basetime}/none/${validtime}/surf/hrpns/{z}/{x}/{y}.png`;
 
-const gpsStatus     = document.getElementById('gps-status');
-const forecast      = document.getElementById('forecast');
-const forecastCards = document.getElementById('forecast-cards');
-const radarTimeEl   = document.getElementById('radar-time');
-const chartTimeEl   = document.getElementById('chart-time');
+const gpsStatus      = document.getElementById('gps-status');
+const forecast       = document.getElementById('forecast');
+const forecastCards  = document.getElementById('forecast-cards');
+const radarTimeEl    = document.getElementById('radar-time');
+const chartTimeEl    = document.getElementById('chart-time');
 const aiCommentaryEl = document.getElementById('ai-commentary');
-
-// 地上天気図の緯度経度バウンド（JMA 日本周辺アジア図）
-const CHART_BOUNDS = [[10, 90], [75, 180]];
-let chartOverlay = null;
+const weatherChart   = document.getElementById('weather-chart');
 
 // AI解説APIエンドポイント（同一オリジン = Cloudflare Worker）
 const AI_ENDPOINT = '/api/ai-commentary';
@@ -135,11 +132,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   opacity: 0.6,
 }).addTo(map);
 
-// 天気図用 pane（OSM の上、レーダーの下）
-map.createPane('chartPane');
-map.getPane('chartPane').style.zIndex = 150;
-map.getPane('chartPane').style.pointerEvents = 'none';
-
 // レーダー専用 pane を OSM より高い z-index に固定。
 // 同一 tilePane 内だとズーム時に重ね順が入れ替わるバグを防ぐ。
 map.createPane('radarPane');
@@ -158,9 +150,17 @@ const JmaRadarLayer = L.TileLayer.extend({
 let radarLayer = null;
 let locationMarker = null;
 
-// 天気図の濃さスライダー
-document.getElementById('chart-opacity')?.addEventListener('input', (e) => {
-  if (chartOverlay) chartOverlay.setOpacity(e.target.value / 100);
+// --- タブ切替 ---
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('tab-hidden'));
+    btn.classList.add('active');
+    const panel = document.getElementById('tab-' + btn.dataset.tab);
+    if (panel) panel.classList.remove('tab-hidden');
+    // Leaflet はコンテナが非表示から復帰したときサイズ再計算が必要
+    if (btn.dataset.tab === 'radar') setTimeout(() => map.invalidateSize(), 50);
+  });
 });
 
 async function loadWeatherChart() {
@@ -176,18 +176,14 @@ async function loadWeatherChart() {
       hour: '2-digit', minute: '2-digit', hour12: false,
     }).format(utc);
     currentChartImageUrl = BASE_MAP_IMG + filename;   // AI解説に渡す
-
-    // 既存オーバーレイを削除してから追加
-    if (chartOverlay) map.removeLayer(chartOverlay);
-    const opacityVal = (document.getElementById('chart-opacity')?.value ?? 60) / 100;
-    chartOverlay = L.imageOverlay(currentChartImageUrl, CHART_BOUNDS, {
-      pane: 'chartPane',
-      opacity: opacityVal,
-    }).addTo(map);
-
+    const img = document.createElement('img');
+    img.src = currentChartImageUrl;
+    img.alt = '地上天気図';
+    weatherChart.innerHTML = '';
+    weatherChart.appendChild(img);
     chartTimeEl.textContent = jst;
   } catch {
-    chartTimeEl.textContent = '読み込み失敗';
+    weatherChart.innerHTML = '<p class="placeholder">天気図の読み込みに失敗しました</p>';
   }
 }
 
@@ -340,6 +336,7 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
   const btn = document.getElementById('refresh-btn');
   btn.style.opacity = '0.4';
   btn.style.pointerEvents = 'none';
+  document.getElementById('weather-chart').innerHTML = '<p class="placeholder">読み込み中…</p>';
   document.getElementById('forecast').innerHTML = '<p class="placeholder">読み込み中…</p>';
   document.getElementById('forecast-cards').innerHTML = '';
   document.getElementById('ai-commentary').innerHTML = '<p class="placeholder">読み込み中…</p>';
