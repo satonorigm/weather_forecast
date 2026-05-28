@@ -272,7 +272,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     const panel = document.getElementById('tab-' + btn.dataset.tab);
     if (panel) panel.classList.remove('tab-hidden');
     // Leaflet はコンテナが非表示から復帰したときサイズ再計算が必要
-    if (btn.dataset.tab === 'radar') setTimeout(() => map.invalidateSize(), 50);
+    // またポップアップは非表示中に追加すると位置がズレるので再表示する
+    if (btn.dataset.tab === 'radar') {
+      setTimeout(() => {
+        map.invalidateSize();
+        if (locationMarker) locationMarker.openPopup();
+      }, 50);
+    }
   });
 });
 

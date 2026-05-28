@@ -162,6 +162,7 @@ h2 {
   justify-content: center;
   border: 1px solid #2e3650;
   overflow: hidden;
+  touch-action: none; /* ブラウザ独自のスクロール/ズームUIを無効化 */
 }
 
 .chart-container img {
