@@ -19,14 +19,19 @@
   </header>
 
   <main>
-    <section id="weather-chart-section">
+    <section id="chart-map-section">
       <div class="section-header">
-        <h2>地上天気図</h2>
+        <h2>天気図 ＋ 降水レーダー</h2>
         <span id="chart-time" class="section-time"></span>
       </div>
-      <div id="weather-chart" class="chart-container">
-        <p class="placeholder">読み込み中…</p>
+      <div class="map-controls">
+        <label class="map-control-item">
+          <span>天気図の濃さ</span>
+          <input type="range" id="chart-opacity" min="0" max="100" value="60" step="10">
+        </label>
+        <span id="radar-time" class="section-time"></span>
       </div>
+      <div id="weather-map"></div>
     </section>
 
     <section id="ai-section">
@@ -36,14 +41,6 @@
       <div id="ai-commentary" class="forecast-container">
         <p class="placeholder">予報データ読み込み後に生成されます</p>
       </div>
-    </section>
-
-    <section id="weather-map-section">
-      <div class="section-header">
-        <h2>降水レーダー</h2>
-        <span id="radar-time" class="section-time"></span>
-      </div>
-      <div id="weather-map"></div>
     </section>
 
     <section id="forecast-section">
