@@ -215,6 +215,7 @@ function initChartZoom(container) {
 
   // タッチ（ピンチ＋パン）
   container.addEventListener('touchstart', e => {
+    e.preventDefault(); // ブラウザのスクロール/ズームをジェスチャー開始時点で阻止
     maxTouches = Math.max(maxTouches, e.touches.length);  // ジェスチャー中の最大本数を記録
     if (e.touches.length === 2) {
       lastPinchDist = Math.hypot(
@@ -228,7 +229,7 @@ function initChartZoom(container) {
       dragStartX = e.touches[0].clientX - tx;
       dragStartY = e.touches[0].clientY - ty;
     }
-  }, { passive: true });
+  }, { passive: false }); // preventDefault() を有効にするために非 passive に変更
 
   container.addEventListener('touchmove', e => {
     if (e.touches.length >= 2 || scale > 1) e.preventDefault();
