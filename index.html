@@ -22,16 +22,23 @@
     <section id="chart-map-section">
       <div class="section-header">
         <h2>天気図 ＋ 降水レーダー</h2>
-        <span id="chart-time" class="section-time"></span>
       </div>
-      <div class="map-controls">
-        <label class="map-control-item">
-          <span>天気図の濃さ</span>
-          <input type="range" id="chart-opacity" min="0" max="100" value="60" step="10">
-        </label>
-        <span id="radar-time" class="section-time"></span>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="chart">
+          <span class="tab-label">🗺 天気図</span>
+          <span id="chart-time" class="tab-time"></span>
+        </button>
+        <button class="tab-btn" data-tab="radar">
+          <span class="tab-label">🌧 降水レーダー</span>
+          <span id="radar-time" class="tab-time"></span>
+        </button>
       </div>
-      <div id="weather-map"></div>
+      <div id="tab-chart" class="tab-panel">
+        <div id="weather-chart" class="chart-container"></div>
+      </div>
+      <div id="tab-radar" class="tab-panel tab-hidden">
+        <div id="weather-map"></div>
+      </div>
     </section>
 
     <section id="ai-section">
