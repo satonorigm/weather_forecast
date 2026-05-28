@@ -125,7 +125,7 @@ function parseRadarTime(t) {
 }
 
 // --- Map ---
-const map = L.map('weather-map', { center: [36.5, 136.0], zoom: 5 });
+const map = L.map('weather-map', { center: [36.5, 136.0], zoom: 5, zoomControl: false });
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -159,7 +159,7 @@ function initChartZoom(container) {
   let scale = 1, tx = 0, ty = 0;
   let dragging = false, dragStartX, dragStartY;
   let lastPinchDist = 0, pinchOriginX = 0, pinchOriginY = 0;
-  let lastTap = 0;
+  let lastTap = 0, maxTouches = 0;  // maxTouches でピンチ誤検知を防ぐ
 
   function img() { return container.querySelector('img'); }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -215,6 +215,7 @@ function initChartZoom(container) {
 
   // タッチ（ピンチ＋パン）
   container.addEventListener('touchstart', e => {
+    maxTouches = Math.max(maxTouches, e.touches.length);  // ジェスチャー中の最大本数を記録
     if (e.touches.length === 2) {
       lastPinchDist = Math.hypot(
         e.touches[1].clientX - e.touches[0].clientX,
@@ -247,11 +248,18 @@ function initChartZoom(container) {
     }
   }, { passive: false });
 
-  // ダブルタップでリセット
+  // ダブルタップでリセット（ピンチ終了時の誤検知を防ぐ）
   container.addEventListener('touchend', e => {
-    const now = Date.now();
-    if (now - lastTap < 300 && e.changedTouches.length === 1) reset();
-    lastTap = now;
+    if (e.touches.length === 0) {
+      // 全指が離れた = ジェスチャー完了
+      if (maxTouches === 1) {
+        // 1本指ジェスチャーのみダブルタップ判定
+        const now = Date.now();
+        if (now - lastTap < 300) reset();
+        lastTap = now;
+      }
+      maxTouches = 0;  // 次のジェスチャーに備えてリセット
+    }
   });
 }
 
