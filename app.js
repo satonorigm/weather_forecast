@@ -158,7 +158,7 @@ function initChartZoom(container) {
 
   let scale = 1, tx = 0, ty = 0;
   let dragging = false, dragStartX, dragStartY;
-  let lastPinchDist = 0, pinchOriginX = 0, pinchOriginY = 0;
+  let lastPinchDist = 0, lastMidX = 0, lastMidY = 0;  // 直前フレームの2本指中点
   let lastTap = 0, maxTouches = 0;  // maxTouches でピンチ誤検知を防ぐ
 
   function img() { return container.querySelector('img'); }
@@ -222,8 +222,8 @@ function initChartZoom(container) {
         e.touches[1].clientY - e.touches[0].clientY,
       );
       const rect = container.getBoundingClientRect();
-      pinchOriginX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left - tx;
-      pinchOriginY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top  - ty;
+      lastMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      lastMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
     } else if (e.touches.length === 1) {
       dragStartX = e.touches[0].clientX - tx;
       dragStartY = e.touches[0].clientY - ty;
@@ -237,10 +237,14 @@ function initChartZoom(container) {
         e.touches[1].clientX - e.touches[0].clientX,
         e.touches[1].clientY - e.touches[0].clientY,
       );
+      const rect = container.getBoundingClientRect();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
       const ns = clamp(scale * dist / lastPinchDist, 1, 5);
-      tx -= pinchOriginX * (ns / scale - 1);
-      ty -= pinchOriginY * (ns / scale - 1);
-      scale = ns; lastPinchDist = dist; apply();
+      // 現フレームの中点でズーム + 中点移動分をパンに反映（毎フレーム更新）
+      tx = midX - (lastMidX - tx) * (ns / scale);
+      ty = midY - (lastMidY - ty) * (ns / scale);
+      scale = ns; lastPinchDist = dist; lastMidX = midX; lastMidY = midY; apply();
     } else if (e.touches.length === 1 && scale > 1) {
       tx = e.touches[0].clientX - dragStartX;
       ty = e.touches[0].clientY - dragStartY;
