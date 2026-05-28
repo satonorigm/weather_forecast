@@ -91,7 +91,7 @@ h2 {
 
 .section-header h2 { margin-bottom: 0; }
 
-#forecast-section > h2 {
+#forecast-section .section-header {
   margin-bottom: 10px;
 }
 
