@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>天気を読む</title>
+  <title>空よみ</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <div class="header-top">
-      <h1>天気を読む</h1>
+      <h1>空よみ</h1>
       <button id="refresh-btn" aria-label="データを更新">↺</button>
     </div>
     <div id="gps-status" class="status">📍 現在地を取得中…</div>
@@ -21,7 +21,7 @@
   <main>
     <section id="chart-map-section">
       <div class="section-header">
-        <h2>天気図 ＋ 降水レーダー</h2>
+        <h2>天気図／降水レーダー</h2>
       </div>
       <div class="tab-bar">
         <button class="tab-btn active" data-tab="chart">
@@ -35,6 +35,7 @@
       </div>
       <div id="tab-chart" class="tab-panel">
         <div id="weather-chart" class="chart-container"></div>
+        <p class="chart-hint">ピンチ or スクロールでズーム ／ ダブルタップでリセット</p>
       </div>
       <div id="tab-radar" class="tab-panel tab-hidden">
         <div id="weather-map"></div>

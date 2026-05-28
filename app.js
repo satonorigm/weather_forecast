@@ -150,6 +150,111 @@ const JmaRadarLayer = L.TileLayer.extend({
 let radarLayer = null;
 let locationMarker = null;
 
+// --- 天気図ズーム（ピンチ/ホイール/ドラッグ対応）---
+function initChartZoom(container) {
+  // 初回のみリスナーを登録。以降の呼び出しはズームをリセットするだけ。
+  if (container._zoomInit) { container._zoomReset?.(); return; }
+  container._zoomInit = true;
+
+  let scale = 1, tx = 0, ty = 0;
+  let dragging = false, dragStartX, dragStartY;
+  let lastPinchDist = 0, pinchOriginX = 0, pinchOriginY = 0;
+  let lastTap = 0;
+
+  function img() { return container.querySelector('img'); }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function constrain() {
+    if (scale <= 1) { tx = 0; ty = 0; return; }
+    const el = img(); if (!el) return;
+    const cw = container.clientWidth, ch = container.clientHeight;
+    tx = clamp(tx, cw  - cw  * scale, 0);
+    ty = clamp(ty, ch  - el.clientHeight * scale, 0);
+  }
+
+  function apply() {
+    constrain();
+    const el = img(); if (!el) return;
+    el.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+    el.style.cursor = scale > 1 ? 'grab' : 'default';
+  }
+
+  function reset() { scale = 1; tx = 0; ty = 0; apply(); }
+  container._zoomReset = reset;
+
+  // マウスホイール
+  container.addEventListener('wheel', e => {
+    e.preventDefault();
+    const el = img(); if (!el) return;
+    const rect = container.getBoundingClientRect();
+    const ox = e.clientX - rect.left - tx;   // ズーム基点（画像座標）
+    const oy = e.clientY - rect.top  - ty;
+    const f = e.deltaY < 0 ? 1.2 : 1 / 1.2;
+    const ns = clamp(scale * f, 1, 5);
+    tx -= ox * (ns / scale - 1);
+    ty -= oy * (ns / scale - 1);
+    scale = ns;
+    apply();
+  }, { passive: false });
+
+  // マウスドラッグ
+  container.addEventListener('mousedown', e => {
+    if (scale <= 1) return;
+    dragging = true; dragStartX = e.clientX - tx; dragStartY = e.clientY - ty;
+    container.style.cursor = 'grabbing'; e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    tx = e.clientX - dragStartX; ty = e.clientY - dragStartY; apply();
+  });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false; container.style.cursor = '';
+  });
+  container.addEventListener('dblclick', reset);
+
+  // タッチ（ピンチ＋パン）
+  container.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      lastPinchDist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY,
+      );
+      const rect = container.getBoundingClientRect();
+      pinchOriginX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left - tx;
+      pinchOriginY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top  - ty;
+    } else if (e.touches.length === 1) {
+      dragStartX = e.touches[0].clientX - tx;
+      dragStartY = e.touches[0].clientY - ty;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchmove', e => {
+    if (e.touches.length >= 2 || scale > 1) e.preventDefault();
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY,
+      );
+      const ns = clamp(scale * dist / lastPinchDist, 1, 5);
+      tx -= pinchOriginX * (ns / scale - 1);
+      ty -= pinchOriginY * (ns / scale - 1);
+      scale = ns; lastPinchDist = dist; apply();
+    } else if (e.touches.length === 1 && scale > 1) {
+      tx = e.touches[0].clientX - dragStartX;
+      ty = e.touches[0].clientY - dragStartY;
+      apply();
+    }
+  }, { passive: false });
+
+  // ダブルタップでリセット
+  container.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300 && e.changedTouches.length === 1) reset();
+    lastTap = now;
+  });
+}
+
 // --- タブ切替 ---
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -179,9 +284,12 @@ async function loadWeatherChart() {
     const img = document.createElement('img');
     img.src = currentChartImageUrl;
     img.alt = '地上天気図';
+    img.draggable = false;
+    img.style.transformOrigin = '0 0';
     weatherChart.innerHTML = '';
     weatherChart.appendChild(img);
     chartTimeEl.textContent = jst;
+    initChartZoom(weatherChart);  // ズーム機能を有効化
   } catch {
     weatherChart.innerHTML = '<p class="placeholder">天気図の読み込みに失敗しました</p>';
   }
