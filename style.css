@@ -100,27 +100,32 @@ h2 {
   color: #6b7590;
 }
 
-/* ---- Weather chart ---- */
-.chart-container {
-  background: #252b3b;
-  border-radius: 8px;
-  min-height: 120px;
+/* ---- Map controls ---- */
+.map-controls {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid #2e3650;
-  overflow: hidden;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.chart-container img {
-  width: 100%;
-  display: block;
-  border-radius: 6px;
+.map-control-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #9aa3b8;
 }
 
-/* ---- Radar map ---- */
+.map-control-item input[type="range"] {
+  width: 90px;
+  accent-color: #7ec8a4;
+}
+
+/* ---- Combined chart + radar map ---- */
 #weather-map {
-  height: 300px;
+  height: 400px;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #2e3650;
@@ -225,6 +230,6 @@ h2 {
     margin: 0 auto;
     padding: 20px;
   }
-  #weather-map { height: 360px; }
+  #weather-map { height: 480px; }
   h1 { font-size: 1.4rem; }
 }
