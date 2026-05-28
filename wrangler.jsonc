@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "weather-ai",
   "compatibility_date": "2026-05-28",
+  "main": "cloudflare/worker.js",
   "observability": {
     "enabled": true
   },
