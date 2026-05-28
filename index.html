@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>天気図</title>
+  <title>天気を読む</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <div class="header-top">
-      <h1>天気図</h1>
+      <h1>天気を読む</h1>
       <button id="refresh-btn" aria-label="データを更新">↺</button>
     </div>
     <div id="gps-status" class="status">📍 現在地を取得中…</div>
@@ -29,6 +29,15 @@
       </div>
     </section>
 
+    <section id="ai-section">
+      <div class="section-header">
+        <h2>AI解説</h2>
+      </div>
+      <div id="ai-commentary" class="forecast-container">
+        <p class="placeholder">予報データ読み込み後に生成されます</p>
+      </div>
+    </section>
+
     <section id="weather-map-section">
       <div class="section-header">
         <h2>降水レーダー</h2>
@@ -38,19 +47,13 @@
     </section>
 
     <section id="forecast-section">
-      <h2>3日間予報</h2>
+      <div class="section-header">
+        <h2>3日間予報</h2>
+        <span class="section-time">気象庁発表</span>
+      </div>
       <div id="forecast-cards"></div>
       <div id="forecast" class="forecast-container">
         <p class="placeholder">読み込み中…</p>
-      </div>
-    </section>
-
-    <section id="ai-section">
-      <div class="section-header">
-        <h2>🤖 AI山岳気象解説</h2>
-      </div>
-      <div id="ai-commentary" class="forecast-container">
-        <p class="placeholder">予報データ読み込み後に生成されます</p>
       </div>
     </section>
   </main>
