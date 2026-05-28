@@ -17,14 +17,17 @@ const aiCommentaryEl = document.getElementById('ai-commentary');
 // AI解説APIエンドポイント（同一オリジン = Cloudflare Worker）
 const AI_ENDPOINT = '/api/ai-commentary';
 
+// 天気図の画像URL（loadWeatherChart が設定する）
+let currentChartImageUrl = null;
+
 async function loadAiCommentary({ area, forecastText, headline, days }) {
   if (!aiCommentaryEl) return;
-  aiCommentaryEl.innerHTML = '<p class="placeholder">🤖 解説を生成中…</p>';
+  aiCommentaryEl.innerHTML = '<p class="placeholder">🤖 天気図を読み解いています…</p>';
   try {
     const res = await fetch(AI_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ area, forecastText, headline, days }),
+      body: JSON.stringify({ area, forecastText, headline, days, chartImageUrl: currentChartImageUrl }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { commentary } = await res.json();
@@ -159,8 +162,9 @@ async function loadWeatherChart() {
       timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric',
       hour: '2-digit', minute: '2-digit', hour12: false,
     }).format(utc);
+    currentChartImageUrl = BASE_MAP_IMG + filename;   // AI解説に渡す
     const img = document.createElement('img');
-    img.src = BASE_MAP_IMG + filename;
+    img.src = currentChartImageUrl;
     img.alt = '地上天気図';
     weatherChart.innerHTML = '';
     weatherChart.appendChild(img);
